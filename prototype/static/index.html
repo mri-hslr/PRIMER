@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Primer — Adaptive AI Tutor</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f6f8;
+  color:#20242a
+}
+
+header{
+  background:#fff;
+  border-bottom:1px solid #ddd;
+  padding:18px 28px
+}
+
+header h1{
+  margin:0 0 5px;
+  font-size:24px
+}
+
+header p{
+  margin:0;
+  color:#666
+}
+
+main{
+  max-width:1120px;
+  margin:24px auto;
+  padding:0 18px;
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:20px
+}
+
+.card{
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:22px
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:12px;
+  align-items:end
+}
+
+label{
+  font-size:13px;
+  color:#666;
+  display:block
+}
+
+select,input,button,textarea{
+  width:100%;
+  padding:11px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid #cfd4da;
+  font-size:15px
+}
+
+button{
+  background:#20242a;
+  color:#fff;
+  cursor:pointer;
+  border:none
+}
+
+button:disabled{
+  opacity:.65;
+  cursor:not-allowed
+}
+
+.question{
+  font-size:34px;
+  text-align:center;
+  margin:40px 0 25px
+}
+
+.mastery{
+  font-size:46px;
+  text-align:center;
+  font-weight:700;
+  margin:20px 0
+}
+
+.action{
+  background:#f1f3f5;
+  padding:12px;
+  border-radius:8px;
+  font-weight:600
+}
+
+.mastered{
+  background:#edf7ed !important;
+  border:1px solid #b9d9b9
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px
+}
+
+.stat{
+  border:1px solid #e3e6e9;
+  border-radius:8px;
+  padding:12px
+}
+
+.stat span{
+  display:block;
+  color:#666;
+  font-size:12px;
+  margin-bottom:5px
+}
+
+.stat strong{
+  font-size:19px
+}
+
+#feedback,#chatReply{
+  margin-top:16px;
+  padding:13px;
+  border-radius:8px;
+  background:#f1f3f5;
+  line-height:1.55;
+  white-space:pre-wrap
+}
+
+.chat{
+  margin-top:24px
+}
+
+.chat textarea{
+  min-height:90px;
+  resize:vertical
+}
+
+.status{
+  margin-top:14px;
+  font-size:13px
+}
+
+.connected{color:#18794e}
+.offline{color:#a05b00}
+
+.next-skill{
+  display:none;
+  margin-top:12px;
+  padding:12px;
+  border-radius:8px;
+  background:#eef3ff
+}
+
+/* Loader */
+.loaderRow{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px
+}
+
+.spinner{
+  width:16px;
+  height:16px;
+  border:2px solid #d5d9dd;
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .8s linear infinite
+}
+
+.spinnerDark{
+  width:16px;
+  height:16px;
+  border:2px solid #cfd4da;
+  border-top-color:#20242a;
+  border-radius:50%;
+  animation:spin .8s linear infinite
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+@media(max-width:850px){
+  main{grid-template-columns:1fr}
+  .controls{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Primer — Adaptive AI Tutor</h1>
+<p>CSV → BKT learner state → adaptive policy → LLM feedback + next question</p>
+</header>
+
+<main>
+
+<section class="card">
+
+<h2>Learning Session</h2>
+
+<div class="controls">
+
+<div>
+<label>Student</label>
+<select id="student"></select>
+</div>
+
+<div>
+<label>Skill</label>
+<select id="skill">
+<option value="addition">Addition</option>
+<option value="subtraction">Subtraction</option>
+</select>
+</div>
+
+<button id="resetBtn" onclick="resetSession()">Reset</button>
+
+</div>
+
+<div class="question" id="question">Loading...</div>
+
+<input id="answer" placeholder="Type your answer">
+<button id="submitBtn" onclick="submitAnswer()">Submit Answer</button>
+
+<div id="feedback">
+Answer the question. The learner state will update after the answer is observed.
+</div>
+
+<div class="next-skill" id="nextSkill"></div>
+
+<div class="chat">
+
+<h3>Talk to the Tutor</h3>
+
+<label>
+Try: "I don't understand why 14 + 8 is 22."
+</label>
+
+<textarea
+id="message"
+placeholder="Ask the tutor..."
+></textarea>
+
+<button id="chatBtn" onclick="chatWithTutor()">
+Send to Tutor
+</button>
+
+<div id="chatReply">No tutor message yet.</div>
+
+</div>
+</section>
+
+<aside class="card">
+
+<h2>Learner State</h2>
+
+<div class="mastery" id="mastery">—</div>
+
+<div class="action" id="action">Action: —</div>
+
+<div class="stats">
+
+<div class="stat">
+<span>P(correct) next</span>
+<strong id="predicted">—</strong>
+</div>
+
+<div class="stat">
+<span>Difficulty</span>
+<strong id="difficulty">—</strong>
+</div>
+
+<div class="stat">
+<span>Skill</span>
+<strong id="currentSkill">—</strong>
+</div>
+
+<div class="stat">
+<span>Session answers</span>
+<strong id="history">—</strong>
+</div>
+
+</div>
+
+<div class="status" id="llmStatus">
+Checking LLM configuration...
+</div>
+
+<p class="small">
+CSV provides historical evidence. BKT maintains the current learner state.
+The adaptive policy chooses what type of learning action should happen next.
+The LLM explains the right/wrong outcome and generates the next question.
+</p>
+
+</aside>
+
+</main>
+
+<script>
+
+function setLoading(buttonId, text, dark=false){
+  const btn=document.getElementById(buttonId);
+  btn.dataset.originalText=btn.innerHTML;
+  btn.disabled=true;
+
+  btn.innerHTML=dark
+    ? `<span class="loaderRow"><span class="spinnerDark"></span>${text}</span>`
+    : `<span class="loaderRow"><span class="spinner"></span>${text}</span>`;
+}
+
+function clearLoading(buttonId){
+  const btn=document.getElementById(buttonId);
+  btn.disabled=false;
+
+  if(btn.dataset.originalText){
+    btn.innerHTML=btn.dataset.originalText;
+  }
+}
+
+
+async function loadStudents(){
+
+  const r=await fetch("/api/students");
+  const ids=await r.json();
+
+  const select=document.getElementById("student");
+  select.innerHTML="";
+
+  ids.forEach(id=>{
+    const option=document.createElement("option");
+    option.value=id;
+    option.textContent=id;
+    select.appendChild(option);
+  });
+
+  await refreshState();
+}
+
+
+function renderState(data){
+
+  document.getElementById("question").textContent=data.question;
+
+  document.getElementById("mastery").textContent=
+    `${Math.round(data.mastery*100)}%`;
+
+  document.getElementById("predicted").textContent=
+    `${Math.round(data.predicted_p_correct*100)}%`;
+
+  document.getElementById("action").textContent=
+    `Action: ${data.action}`;
+
+  document.getElementById("difficulty").textContent=
+    data.difficulty;
+
+  document.getElementById("currentSkill").textContent=
+    data.skill;
+
+  document.getElementById("history").textContent=
+    data.history_length;
+
+  const mastery=document.getElementById("mastery");
+  const action=document.getElementById("action");
+
+  if(data.mastery>=0.85 && data.action.includes("MASTERED")){
+    mastery.classList.add("mastered");
+    action.classList.add("mastered");
+  }else{
+    mastery.classList.remove("mastered");
+    action.classList.remove("mastered");
+  }
+
+  const status=document.getElementById("llmStatus");
+
+  if(data.llm_configured){
+    status.textContent=
+      "LLM: configured — actual request is tested when you submit/chat.";
+    status.className="status connected";
+  }else{
+    status.textContent=
+      "LLM: not configured — offline fallback active.";
+    status.className="status offline";
+  }
+}
+
+
+async function refreshState(){
+
+  const student_id=document.getElementById("student").value;
+  const skill=document.getElementById("skill").value;
+
+  if(!student_id){
+    return;
+  }
+
+  const r=await fetch(
+    `/api/state?student_id=${encodeURIComponent(student_id)}&skill=${encodeURIComponent(skill)}`
+  );
+
+  const data=await r.json();
+
+  renderState(data);
+}
+
+
+async function submitAnswer(){
+
+  const student_id=document.getElementById("student").value;
+  const skill=document.getElementById("skill").value;
+  const answer=document.getElementById("answer").value.trim();
+
+  if(!answer){
+    document.getElementById("feedback").textContent=
+      "Please enter an answer first.";
+    return;
+  }
+
+  setLoading("submitBtn","Checking answer...");
+  document.getElementById("answer").disabled=true;
+
+  try{
+
+    // Get exactly the question currently displayed.
+    const stateRes=await fetch(
+      `/api/state?student_id=${encodeURIComponent(student_id)}&skill=${encodeURIComponent(skill)}`
+    );
+
+    const state=await stateRes.json();
+
+    const r=await fetch("/api/answer",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        student_id,
+        skill,
+        answer,
+        question:state.question,
+        correct_answer:state.correct_answer
+      })
+    });
+
+    const data=await r.json();
+
+    if(data.error){
+      document.getElementById("feedback").textContent=data.error;
+      return;
+    }
+
+    document.getElementById("feedback").textContent=data.feedback;
+
+    // IMPORTANT:
+    // Do NOT call refreshState here.
+    // The answer endpoint already returned the NEW question.
+    document.getElementById("question").textContent=
+      data.next_question;
+
+    document.getElementById("mastery").textContent=
+      `${Math.round(data.mastery_after*100)}%`;
+
+    document.getElementById("predicted").textContent=
+      `${Math.round(data.predicted_p_correct_next*100)}%`;
+
+    document.getElementById("action").textContent=
+      `Action: ${data.action}`;
+
+    document.getElementById("difficulty").textContent=data.difficulty;
+    document.getElementById("history").textContent=data.history_length;
+
+    const mastery=document.getElementById("mastery");
+    const action=document.getElementById("action");
+    const nextSkill=document.getElementById("nextSkill");
+
+    if(data.mastered){
+
+      mastery.classList.add("mastered");
+      action.classList.add("mastered");
+
+      nextSkill.style.display="block";
+
+      if(data.next_skill){
+        nextSkill.textContent=
+          `🎯 You have mastered ${skill}. Next skill: ${data.next_skill}.`;
+      }else{
+        nextSkill.textContent=
+          `🎯 You have mastered ${skill}. This small prototype has no further skill configured.`;
+      }
+
+    }else{
+
+      mastery.classList.remove("mastered");
+      action.classList.remove("mastered");
+      nextSkill.style.display="none";
+    }
+
+    const status=document.getElementById("llmStatus");
+
+    if(data.llm_used){
+
+      status.textContent=
+        "LLM: actual response generated successfully.";
+
+      status.className="status connected";
+
+    }else{
+
+      status.textContent=
+        `LLM: fallback used (${data.llm_error}).`;
+
+      status.className="status offline";
+    }
+
+    document.getElementById("answer").value="";
+
+  }catch(err){
+
+    document.getElementById("feedback").textContent=
+      `Request failed: ${err.message}`;
+
+  }finally{
+
+    document.getElementById("answer").disabled=false;
+    clearLoading("submitBtn");
+  }
+}
+
+
+async function chatWithTutor(){
+
+  const student_id=document.getElementById("student").value;
+  const skill=document.getElementById("skill").value;
+  const message=document.getElementById("message").value.trim();
+
+  if(!message){
+    document.getElementById("chatReply").textContent=
+      "Write a message first.";
+    return;
+  }
+
+  setLoading("chatBtn","Thinking...");
+  document.getElementById("message").disabled=true;
+
+  try{
+
+    const r=await fetch("/api/chat",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        student_id,
+        skill,
+        message
+      })
+    });
+
+    const data=await r.json();
+
+    document.getElementById("chatReply").textContent=data.reply;
+
+    const status=document.getElementById("llmStatus");
+
+    if(data.llm_used){
+
+      status.textContent=
+        "LLM: actual response generated successfully.";
+
+      status.className="status connected";
+
+    }else{
+
+      status.textContent=
+        `LLM: fallback used (${data.llm_error}).`;
+
+      status.className="status offline";
+    }
+
+  }catch(err){
+
+    document.getElementById("chatReply").textContent=
+      `Request failed: ${err.message}`;
+
+  }finally{
+
+    document.getElementById("message").disabled=false;
+    clearLoading("chatBtn");
+  }
+}
+
+
+async function resetSession(){
+
+  setLoading("resetBtn","Resetting...",true);
+
+  try{
+
+    await fetch("/api/reset",{
+      method:"POST"
+    });
+
+    document.getElementById("feedback").textContent=
+      "Session reset. Historical CSV state will be used as the starting point.";
+
+    document.getElementById("chatReply").textContent=
+      "No tutor message yet.";
+
+    document.getElementById("nextSkill").style.display="none";
+
+    await refreshState();
+
+  }finally{
+
+    clearLoading("resetBtn");
+  }
+}
+
+
+document.getElementById("skill").addEventListener(
+  "change",
+  refreshState
+);
+
+document.getElementById("student").addEventListener(
+  "change",
+  refreshState
+);
+
+loadStudents();
+
+</script>
+
+</body>
+</html>
