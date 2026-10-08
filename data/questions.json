@@ -1,0 +1,42 @@
+{
+  "addition": {
+    "easy": [
+      {"question": "3 + 4 = ?", "answer": "7"},
+      {"question": "5 + 2 = ?", "answer": "7"},
+      {"question": "6 + 3 = ?", "answer": "9"},
+      {"question": "8 + 1 = ?", "answer": "9"}
+    ],
+    "medium": [
+      {"question": "14 + 8 = ?", "answer": "22"},
+      {"question": "17 + 6 = ?", "answer": "23"},
+      {"question": "24 + 9 = ?", "answer": "33"},
+      {"question": "26 + 17 = ?", "answer": "43"}
+    ],
+    "hard": [
+      {"question": "38 + 27 = ?", "answer": "65"},
+      {"question": "46 + 39 = ?", "answer": "85"},
+      {"question": "57 + 28 = ?", "answer": "85"},
+      {"question": "68 + 27 = ?", "answer": "95"}
+    ]
+  },
+  "subtraction": {
+    "easy": [
+      {"question": "8 - 3 = ?", "answer": "5"},
+      {"question": "10 - 4 = ?", "answer": "6"},
+      {"question": "12 - 7 = ?", "answer": "5"},
+      {"question": "9 - 2 = ?", "answer": "7"}
+    ],
+    "medium": [
+      {"question": "17 - 9 = ?", "answer": "8"},
+      {"question": "23 - 8 = ?", "answer": "15"},
+      {"question": "31 - 14 = ?", "answer": "17"},
+      {"question": "42 - 19 = ?", "answer": "23"}
+    ],
+    "hard": [
+      {"question": "52 - 27 = ?", "answer": "25"},
+      {"question": "74 - 38 = ?", "answer": "36"},
+      {"question": "91 - 47 = ?", "answer": "44"},
+      {"question": "83 - 29 = ?", "answer": "54"}
+    ]
+  }
+}
