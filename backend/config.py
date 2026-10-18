@@ -28,10 +28,11 @@ P_S = 0.10
 # ============================================================
 # SKILL PROGRESSION
 # ============================================================
-SKILL_ORDER = ["addition", "subtraction"]
+SKILL_ORDER = ["poly.division.addition_subtraction"]
 
 # ============================================================
 # GROQ / LLM CONFIG
 # ============================================================
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+DATABASE_URL = os.getenv("DATABASE_URL")

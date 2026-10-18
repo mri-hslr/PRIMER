@@ -1,38 +1,33 @@
 from __future__ import annotations
 
-import json
 from typing import Dict, Tuple
 
-from config import QUESTIONS_FILE
+from core.repository import pick_question
 
-QUESTION_INDEX: Dict[Tuple[str, str, str], int] = {}
+# The policy speaks in labels; polynomial_questions stores a number.
+# Each label maps to a target number, and the closest stored question is used.
+DIFFICULTY_TARGET = {"easy": 30, "medium": 60, "hard": 85}
+
 CURRENT_QUESTION: Dict[Tuple[str, str], dict] = {}
 
 
-def load_question_bank() -> dict:
-    with QUESTIONS_FILE.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
-QUESTION_BANK = load_question_bank()
-
-
 def local_question(student_id: str, skill: str, difficulty: str) -> dict:
-    """Return a different question from the bank each time it's called."""
-    key = (student_id, skill, difficulty)
+    """Pick a question for this skill (concept_id) near the requested difficulty."""
+    previous = CURRENT_QUESTION.get((student_id, skill))
+    exclude_id = previous.get("question_id") if previous else None
 
-    skill_bank = QUESTION_BANK.get(skill, QUESTION_BANK["addition"])
-    questions = skill_bank.get(difficulty, skill_bank["easy"])
-
-    index = QUESTION_INDEX.get(key, 0)
-    item = questions[index % len(questions)]
-    QUESTION_INDEX[key] = index + 1
+    row = pick_question(skill, DIFFICULTY_TARGET.get(difficulty, 60), exclude_id)
+    if row is None:
+        raise LookupError(
+            f"No questions found in polynomial_questions for concept_id '{skill}'."
+        )
 
     return {
-        "question": item["question"],
-        "answer": item["answer"],
+        "question": row["question_text"],
+        "answer": row["answer"],
         "skill": skill,
         "difficulty": difficulty,
+        "question_id": row["id"],
     }
 
 
@@ -53,5 +48,4 @@ def set_current_question(student_id: str, skill: str, question: dict) -> None:
 
 
 def reset_questions() -> None:
-    QUESTION_INDEX.clear()
     CURRENT_QUESTION.clear()
