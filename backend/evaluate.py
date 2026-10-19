@@ -57,6 +57,11 @@ def evaluate() -> None:
         all_predictions.extend(predictions)
         all_actuals.extend(actuals)
 
+    # Added safety check for empty database to prevent ZeroDivisionError
+    if not all_actuals:
+        print("No interaction data found in database. Answer some questions in the UI first.")
+        return
+
     predicted_classes = [1 if p >= 0.5 else 0 for p in all_predictions]
 
     accuracy = accuracy_score(all_actuals, predicted_classes)
