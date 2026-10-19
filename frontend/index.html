@@ -4,647 +4,452 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Primer — Adaptive AI Tutor</title>
+<!-- KaTeX for Math Rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
 <style>
-*{box-sizing:border-box}
+  :root {
+    --bg: #fdfdfd;
+    --surface: #ffffff;
+    --border: #111827;
+    --text-main: #111827;
+    --text-muted: #4b5563;
+    --accent: #111827;
+    --radius: 4px;
+    --shadow-offset: 4px 4px 0px 0px rgba(17, 24, 39, 1);
+  }
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f6f8;
-  color:#20242a
-}
+  * { box-sizing: border-box; }
 
-header{
-  background:#fff;
-  border-bottom:1px solid #ddd;
-  padding:18px 28px
-}
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    line-height: 1.5;
+  }
 
-header h1{
-  margin:0 0 5px;
-  font-size:24px
-}
+  /* Auth Overlay */
+  #authOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
 
-header p{
-  margin:0;
-  color:#666
-}
+  .auth-box {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    padding: 32px;
+    width: 360px;
+    box-shadow: var(--shadow-offset);
+    border-radius: var(--radius);
+  }
 
-main{
-  max-width:1120px;
-  margin:24px auto;
-  padding:0 18px;
-  display:grid;
-  grid-template-columns:1fr 340px;
-  gap:20px
-}
+  .auth-box h2 { margin-top: 0; margin-bottom: 20px; font-weight: 700; }
+  .auth-box input { margin-bottom: 12px; }
+  
+  .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .auth-tab { 
+    flex: 1; text-align: center; padding: 6px; cursor: pointer; 
+    border: 2px solid transparent; font-size: 14px; font-weight: 600;
+  }
+  .auth-tab.active { border-bottom: 2px solid var(--border); }
 
-.card{
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:22px
-}
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 20px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-.controls{
-  display:grid;
-  grid-template-columns:1fr 1fr auto;
-  gap:12px;
-  align-items:end
-}
+  header h1 { margin: 0; font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.5px; }
+  header button { padding: 6px 12px; font-size: 12px; }
 
-label{
-  font-size:13px;
-  color:#666;
-  display:block
-}
+  main {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+  }
 
-select,input,button,textarea{
-  width:100%;
-  padding:11px;
-  margin-top:6px;
-  border-radius:8px;
-  border:1px solid #cfd4da;
-  font-size:15px
-}
+  .card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow-offset);
+  }
 
-button{
-  background:#20242a;
-  color:#fff;
-  cursor:pointer;
-  border:none
-}
+  h2, h3 { margin-top: 0; font-weight: 700; font-size: 16px; text-transform: uppercase; }
 
-button:disabled{
-  opacity:.65;
-  cursor:not-allowed
-}
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+  }
 
-.question{
-  font-size:34px;
-  text-align:center;
-  margin:40px 0 25px
-}
+  label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; text-transform: uppercase; }
 
-.mastery{
-  font-size:46px;
-  text-align:center;
-  font-weight:700;
-  margin:20px 0
-}
+  select, input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    font-size: 14px;
+    background: var(--surface);
+    font-family: inherit;
+  }
+  
+  select:focus, input:focus, textarea:focus { outline: none; box-shadow: 2px 2px 0px 0px rgba(17,24,39,1); }
 
-.action{
-  background:#f1f3f5;
-  padding:12px;
-  border-radius:8px;
-  font-weight:600
-}
+  button {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
 
-.mastered{
-  background:#edf7ed !important;
-  border:1px solid #b9d9b9
-}
+  button:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--shadow-offset); }
+  button:active:not(:disabled) { transform: translate(0, 0); box-shadow: none; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.stats{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:16px
-}
+  .question { font-size: 28px; font-weight: 600; text-align: center; margin: 40px 0; }
+  .answer-row { display: flex; gap: 12px; }
+  .answer-row input { flex: 1; font-size: 16px; }
 
-.stat{
-  border:1px solid #e3e6e9;
-  border-radius:8px;
-  padding:12px
-}
+  #feedback, #chatReply, #authFeedback {
+    margin-top: 20px; padding: 16px; border-radius: var(--radius);
+    background: #f3f4f6; font-size: 14px; border: 2px solid var(--border);
+    white-space: pre-wrap; font-weight: 500;
+  }
 
-.stat span{
-  display:block;
-  color:#666;
-  font-size:12px;
-  margin-bottom:5px
-}
+  .mastery-circle {
+    width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; margin: 0 auto 20px;
+  }
+.stats { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+    margin: 24px 0; 
+  }
+  
+  .stat { 
+    border: 2px solid var(--border); 
+    border-radius: var(--radius); 
+    padding: 16px 10px; /* Adjusted padding to give text more room */
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fff;
+  }
+  
+  .stat span { 
+    display: block; 
+    font-size: 10px; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+  
+  .stat strong { 
+    display: block; 
+    font-size: 15px; 
+    margin-top: 6px; 
+    font-weight: 800; 
+    line-height: 1.2;
+    /* These three lines force long strings to break and wrap safely */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word; 
+  }
 
-.stat strong{
-  font-size:19px
-}
+  .chat { margin-top: 32px; border-top: 2px solid var(--border); padding-top: 24px; }
+  .chat textarea { min-height: 80px; resize: vertical; margin-bottom: 12px; }
 
-#feedback,#chatReply{
-  margin-top:16px;
-  padding:13px;
-  border-radius:8px;
-  background:#f1f3f5;
-  line-height:1.55;
-  white-space:pre-wrap
-}
-
-.chat{
-  margin-top:24px
-}
-
-.chat textarea{
-  min-height:90px;
-  resize:vertical
-}
-
-.status{
-  margin-top:14px;
-  font-size:13px
-}
-
-.connected{color:#18794e}
-.offline{color:#a05b00}
-
-.next-skill{
-  display:none;
-  margin-top:12px;
-  padding:12px;
-  border-radius:8px;
-  background:#eef3ff
-}
-
-/* Loader */
-.loaderRow{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:9px
-}
-
-.spinner{
-  width:16px;
-  height:16px;
-  border:2px solid #d5d9dd;
-  border-top-color:#fff;
-  border-radius:50%;
-  animation:spin .8s linear infinite
-}
-
-.spinnerDark{
-  width:16px;
-  height:16px;
-  border:2px solid #cfd4da;
-  border-top-color:#20242a;
-  border-radius:50%;
-  animation:spin .8s linear infinite
-}
-
-@keyframes spin{
-  to{transform:rotate(360deg)}
-}
-
-@media(max-width:850px){
-  main{grid-template-columns:1fr}
-  .controls{grid-template-columns:1fr}
-}
+  .loaderRow { display: inline-flex; align-items: center; gap: 8px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid transparent; border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  @media(max-width: 850px) { main { grid-template-columns: 1fr; } }
 </style>
 </head>
 
 <body>
 
+<div id="authOverlay">
+  <div class="auth-box">
+    <h2>Access Primer</h2>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabLogin" onclick="setAuthMode('login')">LOGIN</div>
+      <div class="auth-tab" id="tabRegister" onclick="setAuthMode('register')">REGISTER</div>
+    </div>
+    <input type="text" id="username" placeholder="Username" autocomplete="off">
+    <input type="password" id="password" placeholder="Password">
+    <button id="authBtn" style="width: 100%; margin-top: 8px;" onclick="handleAuth()">Login</button>
+    <div id="authFeedback" style="display:none; padding: 10px; margin-top: 12px; font-size: 12px;"></div>
+  </div>
+</div>
+
 <header>
-<h1>Primer — Adaptive AI Tutor</h1>
-<p>CSV → BKT learner state → adaptive policy → LLM feedback + next question</p>
+  <h1>Primer</h1>
+  <button onclick="logout()" style="background: #fff; color: var(--text-main);">Logout</button>
 </header>
 
 <main>
+  <section class="card">
+    <div class="controls">
+      <div style="flex: 1; padding-right: 20px;">
+        <label>Target Skill</label>
+        <select id="skill">
+          <option value="poly.division.addition_subtraction">Polynomial Division</option>
+        </select>
+      </div>
+      <button id="resetBtn" onclick="resetSession()" style="background: #fff; color: var(--text-main);">Reset State</button>
+    </div>
 
-<section class="card">
+    <div class="question" id="question">Loading...</div>
 
-<h2>Learning Session</h2>
+    <div class="answer-row">
+      <input id="answer" placeholder="Enter expression..." autocomplete="off">
+      <button id="submitBtn" onclick="submitAnswer()">Submit</button>
+    </div>
 
-<div class="controls">
+    <div id="feedback">Waiting for answer...</div>
+  </section>
 
-<div>
-<label>Student</label>
-<select id="student"></select>
-</div>
+  <aside class="card">
+    <h2>Knowledge State</h2>
+    <div class="mastery-circle" id="mastery">—</div>
+    <div style="text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase;" id="action">Action: —</div>
 
-<div>
-<label>Skill</label>
-<select id="skill">
-<option value="addition">Addition</option>
-<option value="subtraction">Subtraction</option>
-</select>
-</div>
+    <div class="stats">
+      <div class="stat"><span>P(Correct)</span><strong id="predicted">—</strong></div>
+      <div class="stat"><span>Difficulty</span><strong id="difficulty">—</strong></div>
+      <div class="stat"><span>Answers</span><strong id="history">—</strong></div>
+      <div class="stat"><span>Skill</span><strong id="currentSkill" style="font-size: 10px;">—</strong></div>
+    </div>
 
-<button id="resetBtn" onclick="resetSession()">Reset</button>
-
-</div>
-
-<div class="question" id="question">Loading...</div>
-
-<input id="answer" placeholder="Type your answer">
-<button id="submitBtn" onclick="submitAnswer()">Submit Answer</button>
-
-<div id="feedback">
-Answer the question. The learner state will update after the answer is observed.
-</div>
-
-<div class="next-skill" id="nextSkill"></div>
-
-<div class="chat">
-
-<h3>Talk to the Tutor</h3>
-
-<label>
-Try: "I don't understand why 14 + 8 is 22."
-</label>
-
-<textarea
-id="message"
-placeholder="Ask the tutor..."
-></textarea>
-
-<button id="chatBtn" onclick="chatWithTutor()">
-Send to Tutor
-</button>
-
-<div id="chatReply">No tutor message yet.</div>
-
-</div>
-</section>
-
-<aside class="card">
-
-<h2>Learner State</h2>
-
-<div class="mastery" id="mastery">—</div>
-
-<div class="action" id="action">Action: —</div>
-
-<div class="stats">
-
-<div class="stat">
-<span>P(correct) next</span>
-<strong id="predicted">—</strong>
-</div>
-
-<div class="stat">
-<span>Difficulty</span>
-<strong id="difficulty">—</strong>
-</div>
-
-<div class="stat">
-<span>Skill</span>
-<strong id="currentSkill">—</strong>
-</div>
-
-<div class="stat">
-<span>Session answers</span>
-<strong id="history">—</strong>
-</div>
-
-</div>
-
-<div class="status" id="llmStatus">
-Checking LLM configuration...
-</div>
-
-<p class="small">
-CSV provides historical evidence. BKT maintains the current learner state.
-The adaptive policy chooses what type of learning action should happen next.
-The LLM explains the right/wrong outcome and generates the next question.
-</p>
-
-</aside>
-
+    <div class="chat">
+      <h3>AI Tutor</h3>
+      <textarea id="message" placeholder="Ask for a hint..."></textarea>
+      <button id="chatBtn" style="width: 100%;" onclick="chatWithTutor()">Ask</button>
+      <div id="chatReply">Tutor ready.</div>
+    </div>
+  </aside>
 </main>
 
 <script>
+const API_BASE = "http://127.0.0.1:5000";
+let authMode = 'login';
 
-function setLoading(buttonId, text, dark=false){
-  const btn=document.getElementById(buttonId);
-  btn.dataset.originalText=btn.innerHTML;
-  btn.disabled=true;
-
-  btn.innerHTML=dark
-    ? `<span class="loaderRow"><span class="spinnerDark"></span>${text}</span>`
-    : `<span class="loaderRow"><span class="spinner"></span>${text}</span>`;
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('authBtn').textContent = mode === 'login' ? 'Login' : 'Register';
+  document.getElementById('authFeedback').style.display = 'none';
 }
-
-function clearLoading(buttonId){
-  const btn=document.getElementById(buttonId);
-  btn.disabled=false;
-
-  if(btn.dataset.originalText){
-    btn.innerHTML=btn.dataset.originalText;
+function renderMath() {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false}
+      ],
+      throwOnError: false
+    });
   }
 }
 
+function showAuthError(msg) {
+  const fb = document.getElementById('authFeedback');
+  fb.textContent = msg;
+  fb.style.display = 'block';
+  fb.style.borderColor = '#dc2626';
+}
 
-async function loadStudents(){
+async function handleAuth() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  
+  if(!username || !password) return showAuthError("Username and password required.");
 
-  const r=await fetch("/api/students");
-  const ids=await r.json();
+  const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
+  document.getElementById('authBtn').disabled = true;
 
-  const select=document.getElementById("student");
-  select.innerHTML="";
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await res.json();
+    
+    if(!res.ok) throw new Error(data.error || "Authentication failed");
 
-  ids.forEach(id=>{
-    const option=document.createElement("option");
-    option.value=id;
-    option.textContent=id;
-    select.appendChild(option);
-  });
+    if (authMode === 'register') {
+      setAuthMode('login');
+      showAuthError("Registration successful. Please login.");
+      document.getElementById('authFeedback').style.borderColor = '#16a34a';
+    } else {
+      localStorage.setItem('primer_token', data.token);
+      document.getElementById('authOverlay').style.display = 'none';
+      refreshState();
+    }
+  } catch (err) {
+    showAuthError(err.message);
+  } finally {
+    document.getElementById('authBtn').disabled = false;
+  }
+}
 
+function logout() {
+  localStorage.removeItem('primer_token');
+  document.getElementById('authOverlay').style.display = 'flex';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+// Intercept fetch calls to attach token and handle 401s
+async function apiFetch(endpoint, options = {}) {
+  const token = localStorage.getItem('primer_token');
+  if (!token) {
+    document.getElementById('authOverlay').style.display = 'flex';
+    throw new Error("Unauthenticated");
+  }
+
+  const headers = {
+    ...options.headers,
+    'Authorization': `Bearer ${token}`
+  };
+
+  const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+  
+  if (res.status === 401) {
+    logout();
+    throw new Error("Session expired");
+  }
+  
+  return res.json();
+}
+
+function renderState(data) {
+  document.getElementById("question").textContent = data.question;
+  document.getElementById("mastery").textContent = `${Math.round(data.mastery * 100)}%`;
+  document.getElementById("predicted").textContent = `${Math.round(data.predicted_p_correct * 100)}%`;
+  document.getElementById("action").textContent = `Action: ${data.action}`;
+  document.getElementById("difficulty").textContent = data.difficulty;
+  document.getElementById("currentSkill").textContent = data.skill;
+  document.getElementById("history").textContent = data.history_length;
+  renderMath();
+}
+
+async function refreshState() {
+  const skill = document.getElementById("skill").value;
+  try {
+    const data = await apiFetch(`/api/state?skill=${encodeURIComponent(skill)}`);
+    renderState(data);
+  } catch(e) { /* Error handled by apiFetch interceptor */ }
+}
+
+async function submitAnswer() {
+  const skill = document.getElementById("skill").value;
+  const answer = document.getElementById("answer").value.trim();
+  if (!answer) return;
+
+  document.getElementById("submitBtn").disabled = true;
+  document.getElementById("answer").disabled = true;
+
+  try {
+    const state = await apiFetch(`/api/state?skill=${encodeURIComponent(skill)}`);
+    const data = await apiFetch(`/api/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        skill, answer,
+        question: state.question,
+        correct_answer: state.correct_answer
+      })
+    });
+
+    if (data.error) throw new Error(data.error);
+    
+    document.getElementById("feedback").textContent = data.feedback;
+    document.getElementById("question").textContent = data.next_question;
+    document.getElementById("mastery").textContent = `${Math.round(data.mastery_after * 100)}%`;
+    document.getElementById("predicted").textContent = `${Math.round(data.predicted_p_correct_next * 100)}%`;
+    document.getElementById("action").textContent = `Action: ${data.action}`;
+    document.getElementById("difficulty").textContent = data.difficulty;
+    document.getElementById("history").textContent = data.history_length;
+    document.getElementById("answer").value = "";
+  } catch (err) {
+    if(err.message !== "Unauthenticated") document.getElementById("feedback").textContent = err.message;
+  } finally {
+    document.getElementById("submitBtn").disabled = false;
+    document.getElementById("answer").disabled = false;
+    document.getElementById("answer").focus();
+  }
+}
+
+async function chatWithTutor() {
+  const skill = document.getElementById("skill").value;
+  const message = document.getElementById("message").value.trim();
+  if (!message) return;
+
+  document.getElementById("chatBtn").disabled = true;
+  document.getElementById("message").disabled = true;
+
+  try {
+    const data = await apiFetch(`/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skill, message })
+    });
+    document.getElementById("chatReply").textContent = data.reply;
+    document.getElementById("message").value = "";
+  } catch (err) {
+    if(err.message !== "Unauthenticated") document.getElementById("chatReply").textContent = err.message;
+  } finally {
+    document.getElementById("chatBtn").disabled = false;
+    document.getElementById("message").disabled = false;
+  }
+}
+
+async function resetSession() {
+  await apiFetch(`/api/reset`, { method: "POST" });
   await refreshState();
+  document.getElementById("feedback").textContent = "Session reset.";
 }
 
+document.getElementById("skill").addEventListener("change", refreshState);
+document.getElementById("answer").addEventListener("keypress", e => { if (e.key === "Enter") submitAnswer(); });
 
-function renderState(data){
-
-  document.getElementById("question").textContent=data.question;
-
-  document.getElementById("mastery").textContent=
-    `${Math.round(data.mastery*100)}%`;
-
-  document.getElementById("predicted").textContent=
-    `${Math.round(data.predicted_p_correct*100)}%`;
-
-  document.getElementById("action").textContent=
-    `Action: ${data.action}`;
-
-  document.getElementById("difficulty").textContent=
-    data.difficulty;
-
-  document.getElementById("currentSkill").textContent=
-    data.skill;
-
-  document.getElementById("history").textContent=
-    data.history_length;
-
-  const mastery=document.getElementById("mastery");
-  const action=document.getElementById("action");
-
-  if(data.mastery>=0.85 && data.action.includes("MASTERED")){
-    mastery.classList.add("mastered");
-    action.classList.add("mastered");
-  }else{
-    mastery.classList.remove("mastered");
-    action.classList.remove("mastered");
-  }
-
-  const status=document.getElementById("llmStatus");
-
-  if(data.llm_configured){
-    status.textContent=
-      "LLM: configured — actual request is tested when you submit/chat.";
-    status.className="status connected";
-  }else{
-    status.textContent=
-      "LLM: not configured — offline fallback active.";
-    status.className="status offline";
-  }
+// Auto-check auth on load
+if (localStorage.getItem('primer_token')) {
+  document.getElementById('authOverlay').style.display = 'none';
+  refreshState();
 }
-
-
-async function refreshState(){
-
-  const student_id=document.getElementById("student").value;
-  const skill=document.getElementById("skill").value;
-
-  if(!student_id){
-    return;
-  }
-
-  const r=await fetch(
-    `/api/state?student_id=${encodeURIComponent(student_id)}&skill=${encodeURIComponent(skill)}`
-  );
-
-  const data=await r.json();
-
-  renderState(data);
-}
-
-
-async function submitAnswer(){
-
-  const student_id=document.getElementById("student").value;
-  const skill=document.getElementById("skill").value;
-  const answer=document.getElementById("answer").value.trim();
-
-  if(!answer){
-    document.getElementById("feedback").textContent=
-      "Please enter an answer first.";
-    return;
-  }
-
-  setLoading("submitBtn","Checking answer...");
-  document.getElementById("answer").disabled=true;
-
-  try{
-
-    // Get exactly the question currently displayed.
-    const stateRes=await fetch(
-      `/api/state?student_id=${encodeURIComponent(student_id)}&skill=${encodeURIComponent(skill)}`
-    );
-
-    const state=await stateRes.json();
-
-    const r=await fetch("/api/answer",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        student_id,
-        skill,
-        answer,
-        question:state.question,
-        correct_answer:state.correct_answer
-      })
-    });
-
-    const data=await r.json();
-
-    if(data.error){
-      document.getElementById("feedback").textContent=data.error;
-      return;
-    }
-
-    document.getElementById("feedback").textContent=data.feedback;
-
-    // IMPORTANT:
-    // Do NOT call refreshState here.
-    // The answer endpoint already returned the NEW question.
-    document.getElementById("question").textContent=
-      data.next_question;
-
-    document.getElementById("mastery").textContent=
-      `${Math.round(data.mastery_after*100)}%`;
-
-    document.getElementById("predicted").textContent=
-      `${Math.round(data.predicted_p_correct_next*100)}%`;
-
-    document.getElementById("action").textContent=
-      `Action: ${data.action}`;
-
-    document.getElementById("difficulty").textContent=data.difficulty;
-    document.getElementById("history").textContent=data.history_length;
-
-    const mastery=document.getElementById("mastery");
-    const action=document.getElementById("action");
-    const nextSkill=document.getElementById("nextSkill");
-
-    if(data.mastered){
-
-      mastery.classList.add("mastered");
-      action.classList.add("mastered");
-
-      nextSkill.style.display="block";
-
-      if(data.next_skill){
-        nextSkill.textContent=
-          `🎯 You have mastered ${skill}. Next skill: ${data.next_skill}.`;
-      }else{
-        nextSkill.textContent=
-          `🎯 You have mastered ${skill}. This small prototype has no further skill configured.`;
-      }
-
-    }else{
-
-      mastery.classList.remove("mastered");
-      action.classList.remove("mastered");
-      nextSkill.style.display="none";
-    }
-
-    const status=document.getElementById("llmStatus");
-
-    if(data.llm_used){
-
-      status.textContent=
-        "LLM: actual response generated successfully.";
-
-      status.className="status connected";
-
-    }else{
-
-      status.textContent=
-        `LLM: fallback used (${data.llm_error}).`;
-
-      status.className="status offline";
-    }
-
-    document.getElementById("answer").value="";
-
-  }catch(err){
-
-    document.getElementById("feedback").textContent=
-      `Request failed: ${err.message}`;
-
-  }finally{
-
-    document.getElementById("answer").disabled=false;
-    clearLoading("submitBtn");
-  }
-}
-
-
-async function chatWithTutor(){
-
-  const student_id=document.getElementById("student").value;
-  const skill=document.getElementById("skill").value;
-  const message=document.getElementById("message").value.trim();
-
-  if(!message){
-    document.getElementById("chatReply").textContent=
-      "Write a message first.";
-    return;
-  }
-
-  setLoading("chatBtn","Thinking...");
-  document.getElementById("message").disabled=true;
-
-  try{
-
-    const r=await fetch("/api/chat",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        student_id,
-        skill,
-        message
-      })
-    });
-
-    const data=await r.json();
-
-    document.getElementById("chatReply").textContent=data.reply;
-
-    const status=document.getElementById("llmStatus");
-
-    if(data.llm_used){
-
-      status.textContent=
-        "LLM: actual response generated successfully.";
-
-      status.className="status connected";
-
-    }else{
-
-      status.textContent=
-        `LLM: fallback used (${data.llm_error}).`;
-
-      status.className="status offline";
-    }
-
-  }catch(err){
-
-    document.getElementById("chatReply").textContent=
-      `Request failed: ${err.message}`;
-
-  }finally{
-
-    document.getElementById("message").disabled=false;
-    clearLoading("chatBtn");
-  }
-}
-
-
-async function resetSession(){
-
-  setLoading("resetBtn","Resetting...",true);
-
-  try{
-
-    await fetch("/api/reset",{
-      method:"POST"
-    });
-
-    document.getElementById("feedback").textContent=
-      "Session reset. Historical CSV state will be used as the starting point.";
-
-    document.getElementById("chatReply").textContent=
-      "No tutor message yet.";
-
-    document.getElementById("nextSkill").style.display="none";
-
-    await refreshState();
-
-  }finally{
-
-    clearLoading("resetBtn");
-  }
-}
-
-
-document.getElementById("skill").addEventListener(
-  "change",
-  refreshState
-);
-
-document.getElementById("student").addEventListener(
-  "change",
-  refreshState
-);
-
-loadStudents();
-
 </script>
-
 </body>
 </html>
